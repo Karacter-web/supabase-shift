@@ -49,3 +49,23 @@ docker compose up --build
 
 Both images use multi-stage builds. For Twilio, point `PUBLIC_BASE_URL` at a public HTTPS
 tunnel (e.g. `ngrok http 8000`) and set the number's voice webhook to `POST /incoming-call`.
+
+## Backend migration status (Python → Node/Supabase)
+
+The legacy FastAPI service under `backend/` is retained for reference only; all
+active backend logic runs as TanStack server functions and server routes in
+`src/`, backed by the live Supabase project.
+
+| Legacy Python | Node replacement |
+| --- | --- |
+| `GET /health` | `src/routes/api/public/health.ts` |
+| `POST /incoming-call` | `src/routes/api/public/twilio/voice.ts` |
+| `POST /synthesize` | `synthesizeSpeech` in `src/lib/media.functions.ts` |
+| `POST /process-audio` | stubbed (501) — see [DEFERRED.md](./DEFERRED.md) |
+| `POST /translate` | stubbed (501) — see [DEFERRED.md](./DEFERRED.md) |
+| `WS /stream-audio` (Media Streams) | **open gap** — see [DEFERRED.md](./DEFERRED.md) |
+| `WS /ws/studio` + Socket.io hub | Supabase Realtime on `call_sessions` / `call_transcripts` |
+
+Transcription and live translation are deliberately paused (Google Cloud
+billing is not enabled yet). Read `DEFERRED.md` before assuming the migration
+is complete.
