@@ -14,53 +14,8 @@ export type Database = {
   }
   public: {
     Tables: {
-      call_recordings: {
-        Row: {
-          created_at: string
-          duration_seconds: number
-          file_path: string
-          format: string
-          id: string
-          session_id: string
-          size_bytes: number
-          storage_bucket: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          duration_seconds: number
-          file_path: string
-          format?: string
-          id?: string
-          session_id: string
-          size_bytes: number
-          storage_bucket?: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          duration_seconds?: number
-          file_path?: string
-          format?: string
-          id?: string
-          session_id?: string
-          size_bytes?: number
-          storage_bucket?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "call_recordings_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "call_sessions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       call_sessions: {
         Row: {
-          agent_id: string | null
           call_sid: string
           created_at: string
           direction: string
@@ -79,7 +34,6 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          agent_id?: string | null
           call_sid: string
           created_at?: string
           direction?: string
@@ -98,7 +52,6 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          agent_id?: string | null
           call_sid?: string
           created_at?: string
           direction?: string
@@ -131,7 +84,6 @@ export type Database = {
           created_at: string
           id: string
           is_final: boolean
-          recording_id: string | null
           sequence: number
           session_id: string
           speaker: string
@@ -143,7 +95,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_final?: boolean
-          recording_id?: string | null
           sequence?: number
           session_id: string
           speaker?: string
@@ -155,7 +106,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_final?: boolean
-          recording_id?: string | null
           sequence?: number
           session_id?: string
           speaker?: string
@@ -164,13 +114,6 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "call_transcripts_recording_id_fkey"
-            columns: ["recording_id"]
-            isOneToOne: false
-            referencedRelation: "call_recordings"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "call_transcripts_session_id_fkey"
             columns: ["session_id"]
