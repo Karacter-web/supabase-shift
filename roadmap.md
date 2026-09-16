@@ -1,12 +1,14 @@
-# Active Roadmap
+# Roadmap — Python backend → Node/Supabase migration
 
-- [x] Import and configure existing Twilio numbers for the signed-in owner
-- [x] Keep app number inventory synchronized with Twilio
-- [x] Complete in-product Twilio number search and purchase
-- [x] Add outbound dialing from your numbers (audio streams to Call Studio)
-- [ ] Add browser-microphone outbound calling (needs TwiML App SID + API key/secret)
-- [x] Persist inbound and outbound SMS with delivery status
-- [x] Add call and SMS history with transcripts, translations, and durations
-- [ ] Verify authenticated desktop and mobile flows
-- [ ] Verify deployed webhook endpoints and document required production credentials
-- [x] Connect Twilio fresh in the new workspace and verify gateway credentials
+- [x] Phase 1 — clone & inventory the repository
+- [x] Phase 2 — migration plan
+- [x] Live Supabase schema inspection + diff vs repo migration files
+- [x] Import the repository code into this Lovable project
+- [x] Create `voice-samples` and `call-recordings` storage buckets + access rules
+- [x] Stub the deferred transcription/translation endpoints (see DEFERRED.md)
+- [ ] Phase 5 — smoke tests & route diff
+- [ ] Phase 6 — deployment readiness checklist
+- [ ] Paused: Google speech-to-text wiring (Google Cloud billing disabled by choice)
+- [ ] Paused: low-latency live audio architecture (Twilio Media Streams)
+
+The wider product backlog lives in `TODO.md`.
