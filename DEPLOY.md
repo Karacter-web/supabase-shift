@@ -1,8 +1,11 @@
 # Deployment
 
-## Frontend (Vercel)
+Single Node deployment — the app and all its server routes ship together. The
+former Python service has been removed.
 
-The frontend is a TanStack Start (React + Vite + Nitro) app — not Next.js — so Vercel
+## App (Vercel)
+
+This is a TanStack Start (React + Vite + Nitro) app — not Next.js — so Vercel
 must build it with the Nitro Vercel preset. `vercel.json` already does this:
 
 ```json
