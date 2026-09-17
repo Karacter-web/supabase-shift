@@ -31,8 +31,9 @@ Every stub carries a `TODO(deferred)` comment pointing back here.
 - Wire hosted Google STT once billing is enabled on the Google Cloud project —
   which model/region, and who owns the credentials.
 - Decide the live-audio architecture: a persistent process outside serverless
-  (Fly.io / Render / Cloud Run container, the existing `backend/Dockerfile` is a
-  starting point), or an explicit acceptance of callback latency.
+  (Fly.io / Render / Cloud Run container running a small Node WebSocket service),
+  or an explicit acceptance of callback latency. The old Python service has been
+  removed, so this would be built fresh in Node.
 
 ## Not deferred
 
