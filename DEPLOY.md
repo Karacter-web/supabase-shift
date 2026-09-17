@@ -43,3 +43,26 @@ Railway, Cloud Run) and point `VITE_BACKEND_WS_URL` and `PUBLIC_BASE_URL` at it.
 
 The live transcription path used by Call Studio runs on the frontend's own public
 webhook routes and needs no Python service.
+
+## Environment variables (current Node backend)
+
+Client (build-time, safe to expose):
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `VITE_SENTRY_DSN` (optional)
+
+Server (runtime, secret):
+- `SUPABASE_URL`
+- `SUPABASE_PUBLISHABLE_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `LOVABLE_API_KEY` (speech synthesis / translation via the Lovable AI gateway)
+- `TWILIO_API_KEY`
+- `TWILIO_WEBHOOK_TOKEN` (shared token validated on the public Twilio routes)
+- `PUBLIC_BASE_URL` (absolute base URL used to build Twilio callback URLs)
+- `SENTRY_AUTH_TOKEN` (build-time only, for source map upload)
+
+Not required yet, deferred with transcription/translation: `GOOGLE_STT_CREDENTIALS`.
+
+Storage buckets (private, already created): `voice-samples` (25 MB/file),
+`call-recordings` (50 MB/file). Both are restricted to the owning user's
+folder; admins can also read call recordings.
