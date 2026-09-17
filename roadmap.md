@@ -1,4 +1,4 @@
-# Roadmap — Python backend → Node/Supabase migration
+# Roadmap — Python backend → Node/Supabase migration (Python service removed)
 
 - [x] Phase 1 — clone & inventory the repository
 - [x] Phase 2 — migration plan

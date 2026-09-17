@@ -109,20 +109,19 @@ The page stores recordings and tuning values but does no real voice training.
   contact/privacy.
 - [ ] **Analytics.** Add page-view + CTA event tracking (GA4 or Plausible).
 
-## 6. Backend (FastAPI reference service)
+## 6. Server routes (Node, in this app)
 
-Shipped as reference files under `backend/`; deploy externally for
-WebSocket-based paths.
+The Python service was removed on 2026-09-17; all server logic lives in `src/`.
 
-- [ ] **Pick a host for `/stream-audio` + Socket.io.** Vercel serverless can't
-  hold long-lived WebSockets. Deploy `backend/Dockerfile` to Fly.io / Render /
-  Railway / Cloud Run and point `VITE_BACKEND_WS_URL` + `PUBLIC_BASE_URL` at it.
-- [ ] **Whisper model selection.** `services/stt.py` defaults to a model size;
-  make it env-configurable so small deploys use `tiny` and prod uses `medium`.
-- [ ] **Health checks for upstream providers.** `/health` only reports process
-  liveness; add readiness checks for DeepL / ElevenLabs / Twilio connectivity.
+- [ ] **Decide the live-audio host.** Vercel serverless can't hold long-lived
+  WebSockets, so the Twilio Media Streams path is still open (see `DEFERRED.md`).
+  Either build a small Node WebSocket service on Fly.io / Render / Railway /
+  Cloud Run, or accept callback latency.
+- [ ] **Google STT wiring** once Google Cloud billing is enabled (`DEFERRED.md`).
+- [ ] **Health checks for upstream providers.** `/api/public/health` only reports
+  liveness; add readiness checks for Twilio and the AI gateway.
 - [ ] **Structured logging.** Add JSON logs with request/call IDs for tracing a
-  call across the STT → translate → TTS → Socket.io pipeline.
+  call across the transcription → translation → speech pipeline.
 
 ## 7. Ops, Deploy & DX
 
