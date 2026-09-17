@@ -15,10 +15,10 @@ import { AuthProvider } from "../context/AuthContext";
 import { Toaster } from "../components/ui/sonner";
 
 // Initialize Sentry for error tracking
-if (import.meta.env.VITE_SENTRY_DSN) {
+if (import.meta.env["VITE_SENTRY_DSN"]) {
   Sentry.init({
-    dsn: import.meta.env.VITE_SENTRY_DSN,
-    integrations: [new Sentry.BrowserTracing()],
+    dsn: import.meta.env["VITE_SENTRY_DSN"],
+    integrations: [Sentry.browserTracingIntegration()],
     tracesSampleRate: 1.0,
     environment: import.meta.env.MODE || "development",
     release: "karacter-hub-deep-call@1.0.0",

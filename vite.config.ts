@@ -20,7 +20,7 @@ export default defineConfig({
       sentryVitePlugin({
         org: "your-sentry-org-slug",               // Replace with your Sentry org slug
         project: "karacter-hub-deep-call",         // Replace with your Sentry project name
-        authToken: process.env.SENTRY_AUTH_TOKEN, // Injected from Supabase Edge Function secrets
+        authToken: process.env["SENTRY_AUTH_TOKEN"], // Injected from Supabase Edge Function secrets
         sourcemaps: {
           assets: "./dist/**/*.{js,mjs,css}",
         },

@@ -20,7 +20,7 @@ import { BrowserTracing } from '@sentry/tracing';
  * DSN is public and safe to expose in frontend
  */
 export function initSentry() {
-  const dsn = import.meta.env.VITE_SENTRY_DSN;
+  const dsn = import.meta.env["VITE_SENTRY_DSN"];
 
   if (!dsn) {
     console.warn(
