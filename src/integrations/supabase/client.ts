@@ -13,11 +13,15 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   );
 }
 
-// Client-side Supabase client (for user-authenticated queries)
+// Client-side Supabase client (for user-authenticated queries).
+// SSR also evaluates this module, so only use browser storage in the browser.
+const isBrowser = typeof window !== "undefined";
+
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
-    storage: localStorage, // Standard browser storage
-    persistSession: true,
-    autoRefreshToken: true,
+    ...(isBrowser ? { storage: window.localStorage } : {}),
+    persistSession: isBrowser,
+    autoRefreshToken: isBrowser,
   },
 });
+
