@@ -3,58 +3,37 @@
 Real-time call studio: inbound Twilio calls are transcribed, translated and streamed
 live into a split-screen operator UI.
 
-- **Frontend** — React + TanStack Start (Vite), Tailwind CSS, Socket.io client. Route: `/call-studio` (`/` redirects there).
-- **Backend** — FastAPI + Socket.io (`backend/`), Whisper STT, DeepL translation, ElevenLabs TTS, Twilio Media Streams.
+Single Node app — React + TanStack Start (Vite), Tailwind CSS, Supabase (auth, data,
+storage, realtime). All server logic runs as TanStack server functions and server
+routes in `src/`. There is no separate Python service any more.
 
-## Frontend setup
+## Setup
 
 ```bash
 npm install
-cp .env.example .env      # optional: set VITE_BACKEND_WS_URL
 npm run dev               # http://localhost:8080
 ```
-
-If `VITE_BACKEND_WS_URL` is unset, the studio runs a built-in **mock stream** so the UI is
-fully usable before the Python service is running. Set it to the FastAPI origin
-(`http://localhost:8000`) to consume real Socket.io events.
 
 ### Structure
 
 ```
 src/
-├── routes/call-studio.tsx           # main studio page
-├── context/CallStudioContext.tsx    # call/translation/language state (React Context)
-├── lib/studio-stream.ts             # Socket.io client + mock fallback
-└── components/call/
-    ├── AudioInput.tsx               # mic monitoring + level meter + call status
-    ├── IncomingTextFrame.tsx        # raw STT output
-    ├── TranslatedTextFrame.tsx      # translated output
-    └── CallControls.tsx             # start/end, translation, sound tuning, languages
+├── routes/                          # pages + server routes (api/public/*)
+├── lib/*.functions.ts               # server functions (telephony, voice, media)
+├── context/CallStudioContext.tsx    # call/translation/language state
+└── components/call/                 # studio UI (audio input, transcripts, controls)
 ```
-
-## Backend setup
-
-See [`backend/README.md`](backend/README.md) for endpoints, example API calls and the
-full Twilio configuration guide.
 
 ## Docker
 
 ```bash
-cp .env.example .env      # fill in API keys
-docker compose up --build
+docker compose up --build            # http://localhost:3000
 ```
 
-- Frontend → http://localhost:3000
-- Backend  → http://localhost:8000 (docs at `/docs`)
+For Twilio, point `PUBLIC_BASE_URL` at a public HTTPS origin and set the number's
+voice webhook to `POST /api/public/twilio/voice?t=$TWILIO_WEBHOOK_TOKEN`.
 
-Both images use multi-stage builds. For Twilio, point `PUBLIC_BASE_URL` at a public HTTPS
-tunnel (e.g. `ngrok http 8000`) and set the number's voice webhook to `POST /incoming-call`.
-
-## Backend migration status (Python → Node/Supabase)
-
-The legacy FastAPI service under `backend/` is retained for reference only; all
-active backend logic runs as TanStack server functions and server routes in
-`src/`, backed by the live Supabase project.
+## Server endpoints (former Python routes)
 
 | Legacy Python | Node replacement |
 | --- | --- |
@@ -69,3 +48,5 @@ active backend logic runs as TanStack server functions and server routes in
 Transcription and live translation are deliberately paused (Google Cloud
 billing is not enabled yet). Read `DEFERRED.md` before assuming the migration
 is complete.
+
+See [DEPLOY.md](./DEPLOY.md) for deployment and environment variables.

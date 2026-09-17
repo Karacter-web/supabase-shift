@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# Frontend (TanStack Start / React) — multi-stage build.
+# TanStack Start / React app — multi-stage build.
 
 # ---- deps -------------------------------------------------------------------
 FROM node:20-alpine AS deps
@@ -12,8 +12,6 @@ FROM node:20-alpine AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-ARG VITE_BACKEND_WS_URL=http://localhost:8000
-ENV VITE_BACKEND_WS_URL=$VITE_BACKEND_WS_URL
 RUN npm run build
 
 # ---- runtime ----------------------------------------------------------------
