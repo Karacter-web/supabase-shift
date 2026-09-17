@@ -23,7 +23,7 @@ Steps:
    - `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
    - `LOVABLE_API_KEY`, `TWILIO_API_KEY`, `TWILIO_WEBHOOK_TOKEN`
    - `PUBLIC_BASE_URL` — the deployed https origin (e.g. `https://your-app.vercel.app`)
-   - optional: `VITE_BACKEND_WS_URL`
+   
 3. Deploy. The Twilio webhooks are then served at:
    - `POST https://<domain>/api/public/twilio/voice?t=$TWILIO_WEBHOOK_TOKEN`
    - `POST https://<domain>/api/public/twilio/transcription?t=$TWILIO_WEBHOOK_TOKEN`
