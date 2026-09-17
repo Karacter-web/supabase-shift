@@ -2,12 +2,21 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PageShell } from "@/components/landing/PageShell";
 
 const ENDPOINTS = [
-  { method: "POST", path: "/stt", body: "Audio upload → transcript text." },
-  { method: "POST", path: "/translate", body: "Text + source/target language → translated text." },
-  { method: "POST", path: "/tts", body: "Text + voice → synthesized audio." },
-  { method: "POST", path: "/twilio/incoming-call", body: "TwiML webhook for inbound calls." },
-  { method: "WS", path: "/twilio/stream-audio", body: "Twilio Media Stream audio socket." },
-  { method: "WS", path: "/socket.io", body: "Studio events: transcript, translation, call status." },
+  { method: "GET", path: "/api/public/health", body: "Service liveness check." },
+  { method: "POST", path: "/api/public/twilio/voice", body: "TwiML webhook for inbound calls." },
+  {
+    method: "POST",
+    path: "/api/public/twilio/transcription",
+    body: "Twilio real-time transcription callbacks.",
+  },
+  { method: "POST", path: "/api/public/twilio/status", body: "Call status callbacks." },
+  { method: "POST", path: "/api/public/twilio/sms", body: "Inbound SMS webhook." },
+  {
+    method: "POST",
+    path: "/api/public/process-audio",
+    body: "Speech-to-text — deferred, returns 501.",
+  },
+  { method: "POST", path: "/api/public/translate", body: "Translation — deferred, returns 501." },
 ];
 
 export const Route = createFileRoute("/api-reference")({
