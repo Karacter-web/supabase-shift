@@ -7,28 +7,28 @@ export const Route = createFileRoute("/docs")({
       { title: "Docs — Karacter Hub | Deep Call Live" },
       {
         name: "description",
-        content: "Setup guides for connecting Twilio, running the Deep Call Live backend and using the Call Studio.",
+        content: "Setup guides for connecting Twilio, configuring your numbers and using the Call Studio.",
       },
       { property: "og:title", content: "Docs — Karacter Hub | Deep Call Live" },
       {
         property: "og:description",
-        content: "Setup guides for Twilio, the Deep Call Live backend and the Call Studio.",
+        content: "Setup guides for Twilio, phone numbers and the Call Studio.",
       },
     ],
   }),
   component: () => (
     <PageShell title="Docs" intro="Get Deep Call Live running end to end.">
       <p>
-        <strong className="text-foreground">1. Run the backend.</strong> The FastAPI service in
-        <code className="mx-1 font-mono">backend/</code> handles speech-to-text, translation,
-        text-to-speech and Twilio Media Streams. Start it with{" "}
+        <strong className="text-foreground">1. Run the app.</strong> Everything — call handling,
+        voice synthesis and the studio UI — runs in this single app. Start it with{" "}
+        <code className="font-mono">npm run dev</code> or{" "}
         <code className="font-mono">docker compose up</code>.
       </p>
       <p>
         <strong className="text-foreground">2. Point Twilio at it.</strong> Set your number's voice
-        webhook to <code className="font-mono">/twilio/incoming-call</code> on your public backend
-        URL. Twilio then opens a Media Stream to{" "}
-        <code className="font-mono">/twilio/stream-audio</code>.
+        webhook to <code className="font-mono">/api/public/twilio/voice</code> on your public URL.
+        Twilio posts transcription events to{" "}
+        <code className="font-mono">/api/public/twilio/transcription</code>.
       </p>
       <p>
         <strong className="text-foreground">3. Open the Call Studio.</strong> The studio subscribes
