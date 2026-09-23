@@ -478,6 +478,18 @@ function VoiceEditor({ voice }: { voice: VoiceModel }) {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const runTraining = useServerFn(trainVoiceModel);
+  const train = useMutation({
+    mutationFn: () => runTraining({ data: { voiceModelId: voice.id } }),
+    onSuccess: (result) => {
+      toast.success(`Voice trained from ${result.sampleCount} recording(s) — ready for calls.`);
+      void queryClient.invalidateQueries({ queryKey: ["voice-models"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+
+
   const upload = useCallback(
     async (files: FileList | null) => {
       if (!files || files.length === 0) return;
