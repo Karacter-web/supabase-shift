@@ -597,21 +597,45 @@ function VoiceEditor({ voice }: { voice: VoiceModel }) {
           <div className="flex items-center justify-between gap-2">
             <h3 className="text-sm font-semibold">Recordings</h3>
             {editable ? (
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={uploading}
-                onClick={() => fileRef.current?.click()}
-              >
-                {uploading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Upload className="h-4 w-4" />
-                )}
-                Upload audio
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  disabled={train.isPending || (samples.data?.length ?? 0) === 0}
+                  onClick={() => train.mutate()}
+                >
+                  {train.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}
+                  {voice.provider_voice_id ? "Retrain voice" : "Train this voice"}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={uploading}
+                  onClick={() => fileRef.current?.click()}
+                >
+                  {uploading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4" />
+                  )}
+                  Upload audio
+                </Button>
+              </div>
             ) : null}
           </div>
+          {editable ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              {voice.provider_voice_id
+                ? "This voice is trained and ready to speak on calls."
+                : voice.status === "failed"
+                  ? "Training didn't finish last time — try again with clearer recordings."
+                  : "Upload recordings, then train the voice so it sounds like you on calls."}
+            </p>
+          ) : null}
+
           <input
             ref={fileRef}
             type="file"
