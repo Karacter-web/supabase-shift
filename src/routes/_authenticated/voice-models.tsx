@@ -13,7 +13,10 @@ import {
   Volume2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { trainVoiceModel } from "@/lib/voice.functions";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -475,6 +478,18 @@ function VoiceEditor({ voice }: { voice: VoiceModel }) {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const runTraining = useServerFn(trainVoiceModel);
+  const train = useMutation({
+    mutationFn: () => runTraining({ data: { voiceModelId: voice.id } }),
+    onSuccess: (result) => {
+      toast.success(`Voice trained from ${result.sampleCount} recording(s) — ready for calls.`);
+      void queryClient.invalidateQueries({ queryKey: ["voice-models"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+
+
   const upload = useCallback(
     async (files: FileList | null) => {
       if (!files || files.length === 0) return;
@@ -597,21 +612,45 @@ function VoiceEditor({ voice }: { voice: VoiceModel }) {
           <div className="flex items-center justify-between gap-2">
             <h3 className="text-sm font-semibold">Recordings</h3>
             {editable ? (
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={uploading}
-                onClick={() => fileRef.current?.click()}
-              >
-                {uploading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Upload className="h-4 w-4" />
-                )}
-                Upload audio
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  disabled={train.isPending || (samples.data?.length ?? 0) === 0}
+                  onClick={() => train.mutate()}
+                >
+                  {train.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}
+                  {voice.provider_voice_id ? "Retrain voice" : "Train this voice"}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={uploading}
+                  onClick={() => fileRef.current?.click()}
+                >
+                  {uploading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4" />
+                  )}
+                  Upload audio
+                </Button>
+              </div>
             ) : null}
           </div>
+          {editable ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              {voice.provider_voice_id
+                ? "This voice is trained and ready to speak on calls."
+                : voice.status === "failed"
+                  ? "Training didn't finish last time — try again with clearer recordings."
+                  : "Upload recordings, then train the voice so it sounds like you on calls."}
+            </p>
+          ) : null}
+
           <input
             ref={fileRef}
             type="file"

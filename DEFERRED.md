@@ -1,42 +1,53 @@
-# Deferred work — transcription & live translation
+# Deferred work — live (in-call) translation transport
 
-Status: **paused by decision, not closed.** Revisit these first when work resumes.
+Status: **one item open.** Speech-to-text and speech synthesis are no longer
+deferred — they run on ElevenLabs.
 
-## What is stubbed
+## Done (previously deferred)
 
 | Surface | State |
 | --- | --- |
-| `POST /api/public/process-audio` (was Python `/process-audio`) | returns HTTP 501 `not_implemented` |
-| `POST /api/public/translate` (was Python `/translate`) | returns HTTP 501 `not_implemented` |
-| `transcribeAudio`, `translateAudioText` in `src/lib/media.functions.ts` | throw an explicit "Not implemented" error |
-| Twilio Media Streams live audio path (was Python `WS /stream-audio`) | **not ported, gap still open** |
+| `POST /api/public/process-audio` | live — ElevenLabs Scribe v2 batch transcription |
+| `POST /api/public/translate` | live — DeepL (`DEEPL_API_KEY`) with an LLM fallback |
+| `transcribeAudio`, `translateAudioText`, `synthesizeSpeech` (`src/lib/media.functions.ts`) | live |
+| Voice cloning (`trainVoiceModel` in `src/lib/voice.functions.ts`) | live — ElevenLabs Instant Voice Cloning |
 
-Every stub carries a `TODO(deferred)` comment pointing back here.
+`GOOGLE_STT_CREDENTIALS` is no longer used anywhere.
 
-## Why
+## Still open: Twilio Media Streams transport
 
-1. **Google Cloud Speech-to-Text now requires billing**, and billing is
-   deliberately not enabled while the app is still in development. No other STT
-   vendor may be substituted to route around this.
-2. **Low-latency live translation during a call is unresolved.** Twilio Media
-   Streams delivers raw audio over a long-lived WebSocket, which standard
-   serverless functions cannot hold open. `src/routes/api/public/twilio/transcription.ts`
-   (Twilio Real-Time Transcription callbacks) delivers text *after* Twilio's own
-   STT has run: different latency, and no control over the STT engine. It is
-   used for near-real-time transcripts, but it is **not** accepted as the
-   closure of the Media Streams gap.
+Twilio Media Streams needs the server to hold a bidirectional WebSocket open
+for the whole call. The Vercel deployment cannot do this: serverless functions
+have no WebSocket upgrade path, and edge functions only do one-way response
+streaming with a short execution ceiling.
 
-## Open questions to answer on resume
+ElevenLabs' own "Agents + Twilio" native integration does not apply here — it
+is built for a bot answering a caller, not for interpreting between two live
+human speakers.
 
-- Wire hosted Google STT once billing is enabled on the Google Cloud project —
-  which model/region, and who owns the credentials.
-- Decide the live-audio architecture: a persistent process outside serverless
-  (Fly.io / Render / Cloud Run container running a small Node WebSocket service),
-  or an explicit acceptance of callback latency. The old Python service has been
-  removed, so this would be built fresh in Node.
+### Proposed shape (not built)
 
-## Not deferred
+A small standalone Node relay on a host that allows long-lived sockets
+(Fly.io / Railway / Render / a VM), separate from the Vercel app:
 
-Everything else in the migration is done against the live Supabase schema:
-telephony, SMS, voice models, history, storage buckets, health endpoint and
-speech synthesis.
+```text
+Twilio call ──(Media Streams WS, 8 kHz mu-law)──> Node relay
+  relay ──> ElevenLabs Scribe v2 Realtime (mu-law native, no conversion)
+  relay ──> DeepL / LLM translation step
+  relay ──> ElevenLabs Flash v2.5 TTS (ulaw_8000 out)
+  relay ──(media frames)──> Twilio  +  transcript rows ──> Supabase
+```
+
+Tradeoffs to sign off before building:
+
+- Latency: ~150 ms Scribe partial + ~200–400 ms translation + ~300 ms Flash
+  TTS + network ≈ **0.8–1.2 s** from end of phrase to translated speech.
+  Translation being a separate step sets the floor.
+- Cost: relay host ≈ $5–10/month at small size, plus per-minute Scribe and
+  per-character DeepL and ElevenLabs usage.
+- Ops: second deploy target, its own secrets, and a Supabase service key so
+  the relay writes the transcript rows the app already streams live.
+
+`src/routes/api/public/twilio/transcription.ts` (Twilio's own real-time
+transcription callbacks) stays as a near-real-time transcript record. It is
+**not** accepted as closure of this gap.

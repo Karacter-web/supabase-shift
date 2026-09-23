@@ -54,42 +54,13 @@ export function webhookToken(): string {
   return token;
 }
 
-/** Translate text with the Lovable AI gateway. Returns '' on failure. */
-export async function translateText(
-  text: string,
-  targetLang: string,
-  sourceLang?: string,
-): Promise<string> {
-  const key = process.env["LOVABLE_API_KEY"];
-  if (!key || !text.trim()) return "";
-  try {
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "system",
-            content: `You are a live phone-call interpreter. Translate the user's message${
-              sourceLang ? ` from ${sourceLang}` : ""
-            } into ${targetLang}. Reply with the translation only, no notes or quotes.`,
-          },
-          { role: "user", content: text },
-        ],
-      }),
-    });
-    if (!res.ok) {
-      console.error(`Translation failed [${res.status}]: ${await res.text()}`);
-      return "";
-    }
-    const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-    return json.choices?.[0]?.message?.content?.trim() ?? "";
-  } catch (error) {
-    console.error("Translation error", error);
-    return "";
-  }
-}
+/**
+ * Translation for the call path. The implementation lives in
+ * translate.server.ts (DeepL first, LLM fallback) and is re-exported here so
+ * existing callers keep working.
+ */
+export { translateText } from "./translate.server";
+
 
 const SAY_LOCALES: Record<string, string> = {
   en: "en-US",
