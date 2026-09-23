@@ -14,9 +14,14 @@ const ENDPOINTS = [
   {
     method: "POST",
     path: "/api/public/process-audio",
-    body: "Speech-to-text — deferred, returns 501.",
+    body: "Speech-to-text (ElevenLabs Scribe v2). Multipart audio or base64 JSON; needs ?t= token.",
   },
-  { method: "POST", path: "/api/public/translate", body: "Translation — deferred, returns 501." },
+  {
+    method: "POST",
+    path: "/api/public/translate",
+    body: "Translation (DeepL, LLM fallback). JSON { text, targetLang, sourceLang }; needs ?t= token.",
+  },
+
 ];
 
 export const Route = createFileRoute("/api-reference")({
