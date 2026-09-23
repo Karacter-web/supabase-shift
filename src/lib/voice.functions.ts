@@ -16,67 +16,6 @@ export const SAMPLE_LINES: Record<string, string> = {
   ig: "Ndewo, daalụ maka ịkpọ Karacter Hub. Kedu ka m ga-esi nyere gị aka?",
 };
 
-const OPENAI_VOICES = [
-  "alloy",
-  "ash",
-  "ballad",
-  "coral",
-  "echo",
-  "fable",
-  "onyx",
-  "nova",
-  "sage",
-  "shimmer",
-  "verse",
-];
-
-const LANGUAGE_NAMES: Record<string, string> = {
-  en: "English",
-  es: "Spanish",
-  fr: "French",
-  de: "German",
-  pt: "Portuguese",
-  tr: "Turkish",
-  ar: "Arabic",
-  yo: "Yoruba",
-  ha: "Hausa",
-  ig: "Igbo",
-};
-
-function pickVoice(voiceId: string | null | undefined, gender: string): string {
-  if (voiceId && OPENAI_VOICES.includes(voiceId)) return voiceId;
-  if (gender === "male") return "onyx";
-  if (gender === "female") return "coral";
-  return "alloy";
-}
-
-function buildInstructions(input: {
-  language: string;
-  gender: string;
-  style: string;
-  stability: number;
-  similarity: number;
-  pitch: number;
-  description?: string | null | undefined;
-}) {
-  const language = LANGUAGE_NAMES[input.language] ?? input.language;
-  const expressive = input.stability < 0.45;
-  const steady = input.stability > 0.7;
-  const pitch =
-    input.pitch > 2 ? "a slightly brighter, higher pitch" : input.pitch < -2 ? "a deeper, lower pitch" : "a natural pitch";
-
-  return [
-    `Speak entirely in ${language} like a real human on a phone call, never like a text-to-speech reader.`,
-    `Tone: ${input.style}. Voice character: ${input.gender}.`,
-    `Use ${pitch}, natural breaths, small pauses at commas, and everyday intonation.`,
-    expressive ? "Be lively and expressive, with varied intonation." : "",
-    steady ? "Keep the delivery even and consistent throughout." : "",
-    input.description ? `Additional direction: ${input.description}` : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-}
-
 const previewSchema = z.object({
   text: z.string().max(600).optional(),
   language: z.string().min(2).max(5).default("en"),
@@ -90,41 +29,92 @@ const previewSchema = z.object({
   pitch: z.number().min(-10).max(10).default(0),
 });
 
-/** Generate a short, lifelike spoken sample of a voice model. */
+/** Generate a short spoken sample of a voice model with ElevenLabs. */
 export const previewVoice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => previewSchema.parse(input))
   .handler(async ({ data }): Promise<{ audio: string; text: string }> => {
-    const apiKey = process.env["LOVABLE_API_KEY"];
-    if (!apiKey) throw new Error("Voice preview is not configured yet.");
-
+    const { synthesizeWithElevenLabs, resolveVoiceId } = await import("@/lib/elevenlabs.server");
     const text = (data.text?.trim() || SAMPLE_LINES[data.language] || SAMPLE_LINES["en"]) as string;
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/audio/speech", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "openai/gpt-4o-mini-tts",
-        input: text,
-        voice: pickVoice(data.providerVoiceId, data.gender),
-        instructions: buildInstructions(data),
-        speed: data.speed,
-        response_format: "mp3",
-        stream_format: "audio",
-      }),
+    const audio = await synthesizeWithElevenLabs(text, {
+      voiceId: resolveVoiceId(data.providerVoiceId, data.gender),
+      stability: data.stability,
+      similarity: data.similarity,
+      speed: data.speed,
     });
 
-    if (!res.ok) {
-      const body = await res.text().catch(() => "");
-      console.error(`Voice preview failed [${res.status}]: ${body}`);
-      if (res.status === 429) throw new Error("Too many previews right now — try again in a moment.");
-      if (res.status === 402) throw new Error("Voice preview needs more AI credits on this workspace.");
-      throw new Error(`Voice preview failed (${res.status}).`);
-    }
-
-    const audio = Buffer.from(await res.arrayBuffer()).toString("base64");
-    return { audio, text };
+    return { audio: Buffer.from(audio).toString("base64"), text };
   });
+
+const trainSchema = z.object({ voiceModelId: z.string().uuid() });
+
+/**
+ * Clone a user's voice with ElevenLabs Instant Voice Cloning from the
+ * recordings they uploaded into the private `voice-samples` store, and save
+ * the resulting voice id back onto the voice model so it can speak on calls.
+ */
+export const trainVoiceModel = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => trainSchema.parse(input))
+  .handler(
+    async ({ data, context }): Promise<{ providerVoiceId: string; sampleCount: number }> => {
+      const supabase = context.supabase;
+
+      const { data: voice, error: voiceError } = await supabase
+        .from("voice_models")
+        .select("id, name, description, is_preset")
+        .eq("id", data.voiceModelId)
+        .maybeSingle();
+      if (voiceError) throw new Error(voiceError.message);
+      if (!voice) throw new Error("That voice could not be found.");
+      if (voice.is_preset) throw new Error("Built-in voices can't be retrained.");
+
+      const { data: samples, error: sampleError } = await supabase
+        .from("voice_samples")
+        .select("id, file_path, label")
+        .eq("voice_model_id", voice.id);
+      if (sampleError) throw new Error(sampleError.message);
+      if (!samples || samples.length === 0) {
+        throw new Error("Upload at least one recording before training this voice.");
+      }
+
+      await supabase.from("voice_models").update({ status: "training" }).eq("id", voice.id);
+
+      try {
+        const files: Array<{ blob: Blob; filename: string }> = [];
+        for (const sample of samples.slice(0, 25)) {
+          const { data: file, error } = await supabase.storage
+            .from("voice-samples")
+            .download(sample.file_path);
+          if (error || !file) throw new Error(error?.message ?? "A recording could not be read.");
+          files.push({
+            blob: file,
+            filename: sample.label ?? sample.file_path.split("/").pop() ?? "sample.webm",
+          });
+        }
+
+        const { cloneVoice } = await import("@/lib/elevenlabs.server");
+        const providerVoiceId = await cloneVoice({
+          name: `${voice.name} (${voice.id.slice(0, 8)})`,
+          description: voice.description,
+          samples: files,
+        });
+
+        const { error: updateError } = await supabase
+          .from("voice_models")
+          .update({
+            provider: "elevenlabs",
+            provider_voice_id: providerVoiceId,
+            status: "ready",
+          })
+          .eq("id", voice.id);
+        if (updateError) throw new Error(updateError.message);
+
+        return { providerVoiceId, sampleCount: files.length };
+      } catch (error) {
+        await supabase.from("voice_models").update({ status: "failed" }).eq("id", voice.id);
+        throw error instanceof Error ? error : new Error("Voice training failed.");
+      }
+    },
+  );
