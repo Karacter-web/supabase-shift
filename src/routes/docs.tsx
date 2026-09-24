@@ -31,15 +31,21 @@ export const Route = createFileRoute("/docs")({
         <code className="font-mono">/api/public/twilio/transcription</code>.
       </p>
       <p>
-        <strong className="text-foreground">3. Open the Call Studio.</strong> The studio subscribes
-        to the live socket stream and shows incoming and translated text side by side, with
+        <strong className="text-foreground">3. Open the Call Studio.</strong> The studio streams
+        live from your call session and shows incoming and translated text side by side, with
         translation and sound tuning toggles.
       </p>
       <p>
-        <strong className="text-foreground">4. Configure keys.</strong> Copy{" "}
-        <code className="font-mono">.env.example</code> and fill in your Twilio, translation and
-        speech provider credentials.
+        <strong className="text-foreground">4. Configure keys.</strong> Twilio for calls,
+        ElevenLabs for transcription, speech and voice cloning, and DeepL for translation. See{" "}
+        <code className="font-mono">DEPLOY.md</code> for the full list.
+      </p>
+      <p>
+        <strong className="text-foreground">5. Build your own voice.</strong> On the Voice models
+        page, create a voice, upload a few clear recordings, then press “Train this voice” to clone
+        it so it speaks your translated replies on calls.
       </p>
     </PageShell>
   ),
 });
+

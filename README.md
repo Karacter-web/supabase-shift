@@ -40,13 +40,14 @@ voice webhook to `POST /api/public/twilio/voice?t=$TWILIO_WEBHOOK_TOKEN`.
 | `GET /health` | `src/routes/api/public/health.ts` |
 | `POST /incoming-call` | `src/routes/api/public/twilio/voice.ts` |
 | `POST /synthesize` | `synthesizeSpeech` in `src/lib/media.functions.ts` |
-| `POST /process-audio` | stubbed (501) — see [DEFERRED.md](./DEFERRED.md) |
-| `POST /translate` | stubbed (501) — see [DEFERRED.md](./DEFERRED.md) |
+| `POST /process-audio` | `src/routes/api/public/process-audio.ts` — ElevenLabs Scribe v2 |
+| `POST /translate` | `src/routes/api/public/translate.ts` — DeepL, LLM fallback |
 | `WS /stream-audio` (Media Streams) | **open gap** — see [DEFERRED.md](./DEFERRED.md) |
 | `WS /ws/studio` + Socket.io hub | Supabase Realtime on `call_sessions` / `call_transcripts` |
 
-Transcription and live translation are deliberately paused (Google Cloud
-billing is not enabled yet). Read `DEFERRED.md` before assuming the migration
-is complete.
+Speech-to-text (ElevenLabs Scribe v2), translation (DeepL with an LLM
+fallback), speech synthesis and voice cloning (ElevenLabs Flash v2.5 / Instant
+Voice Cloning) are all live. The one remaining gap is the Twilio Media Streams
+transport for in-call translation — read `DEFERRED.md`.
 
 See [DEPLOY.md](./DEPLOY.md) for deployment and environment variables.

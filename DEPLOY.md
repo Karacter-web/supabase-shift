@@ -21,7 +21,8 @@ Steps:
 2. Add the environment variables from `.env` / `.env.example`:
    - `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PROJECT_ID`
    - `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
-   - `LOVABLE_API_KEY`, `TWILIO_API_KEY`, `TWILIO_WEBHOOK_TOKEN`
+   - `ELEVENLABS_API_KEY`, `DEEPL_API_KEY`, `LOVABLE_API_KEY`
+   - `TWILIO_API_KEY`, `TWILIO_WEBHOOK_TOKEN`
    - `PUBLIC_BASE_URL` — the deployed https origin (e.g. `https://your-app.vercel.app`)
    
 3. Deploy. The Twilio webhooks are then served at:
@@ -51,13 +52,15 @@ Server (runtime, secret):
 - `SUPABASE_URL`
 - `SUPABASE_PUBLISHABLE_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `LOVABLE_API_KEY` (speech synthesis / translation via the Lovable AI gateway)
+- `ELEVENLABS_API_KEY` (speech-to-text, speech synthesis, voice cloning)
+- `DEEPL_API_KEY` (translation; falls back to the Lovable AI gateway when absent)
+- `LOVABLE_API_KEY` (translation fallback via the Lovable AI gateway)
 - `TWILIO_API_KEY`
 - `TWILIO_WEBHOOK_TOKEN` (shared token validated on the public Twilio routes)
 - `PUBLIC_BASE_URL` (absolute base URL used to build Twilio callback URLs)
 - `SENTRY_AUTH_TOKEN` (build-time only, for source map upload)
 
-Not required yet, deferred with transcription/translation: `GOOGLE_STT_CREDENTIALS`.
+Google STT is no longer used; `GOOGLE_STT_CREDENTIALS` is not needed.
 
 Storage buckets (private, already created): `voice-samples` (25 MB/file),
 `call-recordings` (50 MB/file). Both are restricted to the owning user's
