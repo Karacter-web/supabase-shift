@@ -8,7 +8,8 @@
 - [x] Stub the deferred transcription/translation endpoints (see DEFERRED.md)
 - [x] Phase 5 — smoke tests & route diff
 - [x] Phase 6 — deployment readiness checklist (see DEPLOY.md)
-- [ ] Paused: Google speech-to-text wiring (Google Cloud billing disabled by choice)
-- [ ] Paused: low-latency live audio architecture (Twilio Media Streams)
+- [x] Speech-to-text, speech synthesis and voice cloning on ElevenLabs
+- [x] Translation as its own step (DeepL, LLM fallback)
+- [ ] Open: Twilio Media Streams transport — design proposed in `DEFERRED.md`, not built
 
 The wider product backlog lives in `TODO.md`.

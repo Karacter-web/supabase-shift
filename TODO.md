@@ -117,7 +117,7 @@ The Python service was removed on 2026-09-17; all server logic lives in `src/`.
   WebSockets, so the Twilio Media Streams path is still open (see `DEFERRED.md`).
   Either build a small Node WebSocket service on Fly.io / Render / Railway /
   Cloud Run, or accept callback latency.
-- [ ] **Google STT wiring** once Google Cloud billing is enabled (`DEFERRED.md`).
+- [x] **Speech-to-text** on ElevenLabs Scribe v2 (replaced the Google STT plan).
 - [ ] **Health checks for upstream providers.** `/api/public/health` only reports
   liveness; add readiness checks for Twilio and the AI gateway.
 - [ ] **Structured logging.** Add JSON logs with request/call IDs for tracing a
