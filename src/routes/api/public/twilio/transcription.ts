@@ -1,18 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { translateText } from "@/lib/twilio.server";
+import { readTwilioParams, translateText, verifyTwilioWebhook } from "@/lib/twilio.server";
 
 /** Receives Twilio real-time transcription events and stores them for Call Studio. */
 export const Route = createFileRoute("/api/public/twilio/transcription")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const url = new URL(request.url);
-        const expected = process.env["TWILIO_WEBHOOK_TOKEN"];
-        if (!expected || url.searchParams.get("t") !== expected) {
+        const params = await readTwilioParams(request);
+        if (!verifyTwilioWebhook(request, params)) {
           return new Response("Unauthorized", { status: 401 });
         }
-
-        const params = new URLSearchParams(await request.text());
         const callSid = params.get("CallSid");
         const event = params.get("TranscriptionEvent");
         if (!callSid) return new Response("ok");
