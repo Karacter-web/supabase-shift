@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { readTwilioParams, verifyTwilioWebhook } from "@/lib/twilio.server";
 
 /** Twilio SMS webhook. Stores inbound messages and delivery updates. */
 export const Route = createFileRoute("/api/public/twilio/sms")({
@@ -11,17 +12,11 @@ export const Route = createFileRoute("/api/public/twilio/sms")({
 
 async function handleSms(request: Request): Promise<Response> {
   const url = new URL(request.url);
-  const expected = process.env["TWILIO_WEBHOOK_TOKEN"];
-  if (!expected || url.searchParams.get("t") !== expected) {
+  const params = await readTwilioParams(request);
+  if (!verifyTwilioWebhook(request, params)) {
     return new Response("Unauthorized", { status: 401 });
   }
-
-  let params: URLSearchParams;
-  try {
-    params = new URLSearchParams(await request.text());
-  } catch {
-    params = url.searchParams;
-  }
+  const expected = process.env["TWILIO_WEBHOOK_TOKEN"] ?? "";
   const messageSid = params.get("MessageSid") ?? params.get("SmsSid");
   const status = params.get("MessageStatus") ?? params.get("SmsStatus");
   const isStatus = url.searchParams.get("event") === "status";

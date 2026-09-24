@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { readTwilioParams, verifyTwilioWebhook } from "@/lib/twilio.server";
 
 /**
  * TwiML for outbound calls placed from the app. Runs once the dialed party
@@ -16,17 +17,11 @@ export const Route = createFileRoute("/api/public/twilio/outbound")({
 
 async function handleOutbound(request: Request): Promise<Response> {
   const url = new URL(request.url);
-  const expected = process.env["TWILIO_WEBHOOK_TOKEN"];
-  if (!expected || url.searchParams.get("t") !== expected) {
+  const params = await readTwilioParams(request);
+  if (!verifyTwilioWebhook(request, params)) {
     return new Response("Unauthorized", { status: 401 });
   }
-
-  let params: URLSearchParams;
-  try {
-    params = new URLSearchParams(await request.text());
-  } catch {
-    params = url.searchParams;
-  }
+  const expected = process.env["TWILIO_WEBHOOK_TOKEN"] ?? "";
 
   const callSid = params.get("CallSid") ?? "";
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

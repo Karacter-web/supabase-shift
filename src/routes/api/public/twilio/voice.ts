@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { readTwilioParams, verifyTwilioWebhook } from "@/lib/twilio.server";
 
 /**
  * Twilio voice webhook. Answers an inbound call, opens a call session and
@@ -15,17 +16,11 @@ export const Route = createFileRoute("/api/public/twilio/voice")({
 
 async function handleVoice(request: Request): Promise<Response> {
   const url = new URL(request.url);
-  const expected = process.env["TWILIO_WEBHOOK_TOKEN"];
-  if (!expected || url.searchParams.get("t") !== expected) {
+  const params = await readTwilioParams(request);
+  if (!verifyTwilioWebhook(request, params)) {
     return new Response("Unauthorized", { status: 401 });
   }
-
-  let params: URLSearchParams;
-  try {
-    params = new URLSearchParams(await request.text());
-  } catch {
-    params = url.searchParams;
-  }
+  const expected = process.env["TWILIO_WEBHOOK_TOKEN"] ?? "";
 
   const callSid = params.get("CallSid") ?? `unknown-${Date.now()}`;
   const from = params.get("From");

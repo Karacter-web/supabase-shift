@@ -22,7 +22,8 @@ Steps:
    - `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PROJECT_ID`
    - `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
    - `ELEVENLABS_API_KEY`, `DEEPL_API_KEY`, `LOVABLE_API_KEY`
-   - `TWILIO_API_KEY`, `TWILIO_WEBHOOK_TOKEN`
+   - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` (Twilio is called directly — no Lovable gateway)
+   - `TWILIO_WEBHOOK_TOKEN` (optional extra shared token)
    - `PUBLIC_BASE_URL` — the deployed https origin (e.g. `https://your-app.vercel.app`)
    
 3. Deploy. The Twilio webhooks are then served at:
@@ -54,9 +55,11 @@ Server (runtime, secret):
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `ELEVENLABS_API_KEY` (speech-to-text, speech synthesis, voice cloning)
 - `DEEPL_API_KEY` (translation; falls back to the Lovable AI gateway when absent)
-- `LOVABLE_API_KEY` (translation fallback via the Lovable AI gateway)
-- `TWILIO_API_KEY`
-- `TWILIO_WEBHOOK_TOKEN` (shared token validated on the public Twilio routes)
+- `LOVABLE_API_KEY` (optional; only the translation fallback uses it — Twilio no longer does)
+- `TWILIO_ACCOUNT_SID` (required)
+- `TWILIO_AUTH_TOKEN` (required; REST auth + `X-Twilio-Signature` webhook verification)
+- `TWILIO_API_KEY_SID` / `TWILIO_API_KEY_SECRET` (optional restricted key for REST calls)
+- `TWILIO_WEBHOOK_TOKEN` (optional; accepted as `?t=` alternative to the signature)
 - `PUBLIC_BASE_URL` (absolute base URL used to build Twilio callback URLs)
 - `SENTRY_AUTH_TOKEN` (build-time only, for source map upload)
 
